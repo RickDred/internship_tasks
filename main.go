@@ -8,6 +8,12 @@ import (
 )
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered error:", r)
+		}
+	}()
+
 	cfg, err := config.Decode("config.yml")
 	if err != nil {
 		panic(err)
