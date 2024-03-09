@@ -13,6 +13,7 @@ type Config struct {
 	} `yaml:"server"`
 }
 
+// read config and return Config
 func Decode(cfgFile string) (*Config, error) {
 	f, err := os.Open(cfgFile)
 	if err != nil {
