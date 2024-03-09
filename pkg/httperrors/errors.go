@@ -1,15 +1,13 @@
-package htmlerrors
+package httperrors
 
 type CustomError struct {
 	Text   string `json:"messge"`
-	Status int `json:"code"`
+	Status int    `json:"code"`
 }
 
 func (c CustomError) Error() string {
 	return c.Text
 }
-
-
 
 type ClientSideError struct {
 	CustomError
