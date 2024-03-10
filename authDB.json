@@ -1,0 +1,18 @@
+[
+    {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "admin",
+        "email": "admin@gmail.com",
+        "password": "$2a$11$CyYq8W1n8ssNhyUQrUum4uoXqlX7tSyxtrsmI8HMeELGjSZ3HlGd6",
+        "role": "admin",
+        "createdAt": "2024-03-10T17:47:38.36965422+05:00"
+    },
+    {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "Elaman",
+        "email": "elaman@gmail.com",
+        "password": "$2a$11$VFpC1VPjLTbqwFXG1J3Eb.ZKthfJ6zkjjch6qmK67URr4/ltouVQG",
+        "role": "user",
+        "createdAt": "2024-03-10T19:46:33.046645708+05:00"
+    }
+]

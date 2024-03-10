@@ -1,0 +1,12 @@
+server:
+  host: "localhost"
+  port: 3000
+  jwtSecretKey: "secretKey"
+  cookieName: "authService"
+cookie:
+  name: "jwt-token"
+  maxAge: 86400
+  secure: false
+  httpOnly: true
+jsonDB:
+  filename: "authDB.json"
