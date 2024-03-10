@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RickDred/internship_tasks/blob/fifth_task/internal/app"
-	"github.com/RickDred/internship_tasks/blob/fifth_task/config"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/config"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/internal/app"
 )
 
 func main() {

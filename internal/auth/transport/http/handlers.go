@@ -3,34 +3,89 @@ package http
 import (
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/RickDred/internship_tasks/blob/fifth_task/internal/models"
-	"github.com/RickDred/internship_tasks/blob/fifth_task/pkg/httperrors"
-	"github.com/RickDred/internship_tasks/blob/fifth_task/pkg/httpjson"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/config"
+
+	"github.com/RickDred/internship_tasks/tree/fifth_task/internal/auth"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/internal/models"
+
+	"github.com/RickDred/internship_tasks/tree/fifth_task/pkg/httperrors"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/pkg/httpjson"
 )
 
-type Handlers struct{}
+type Handlers struct {
+	cfg     *config.Config
+	service auth.Service
+}
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	if err := httpjson.ReadJSON(r, &user); err != nil {
+func NewAuthHandlers(cfg *config.Config, service auth.Service) auth.Handlers {
+	return &Handlers{
+		cfg:     cfg,
+		service: service,
+	}
+}
+
+func (h *Handlers) Register(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := httpjson.ReadJSON(r, &input); err != nil {
 		log.Printf("error while reading json: %v\n", err)
 
-		httpjson.WriteError(w, httperrors.NewBadRequestError("error"))
+		httpjson.WriteError(w, http.StatusBadRequest, httperrors.NewBadRequestError("invalid credentials request"))
 		return
 	}
 
-	respUser := struct {
-		Name      string    `json:"name"`
-		Email     string    `json:"email"`
-		CreatedAt time.Time `json:"createdAt"`
-	}{user.Name, user.Email, time.Now()}
+	user := models.User{
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: input.Password,
+	}
 
-	httpjson.WriteJSON(w, &respUser)
+	if err := h.service.Register(&user); err != nil {
+		httpjson.WriteError(w, http.StatusBadRequest, httperrors.NewBadRequestError(err.Error()))
+		return
+	}
+
+	if err := h.createJwtCookie(w, &user); err != nil {
+		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		return
+	}
+
+	httpjson.WriteJSON(w, &user)
 }
 
 // not implemented yet
-func Login(w http.ResponseWriter, r *http.Request) {}
+func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := httpjson.ReadJSON(r, &input); err != nil {
+		log.Printf("error while reading json: %v\n", err)
 
-func Logout(w http.ResponseWriter, r *http.Request) {}
+		httpjson.WriteError(w, http.StatusBadRequest, httperrors.NewBadRequestError("bad request"))
+		return
+	}
+
+	user := models.User{
+		Email:    input.Email,
+		Password: input.Password,
+	}
+
+	if err := h.service.Login(&user); err != nil {
+		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		return
+	}
+
+	if err := h.createJwtCookie(w, &user); err != nil {
+		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		return
+	}
+
+	httpjson.WriteJSON(w, &input)
+}
+
+func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {}

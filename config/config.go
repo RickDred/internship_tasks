@@ -8,9 +8,22 @@ import (
 
 type Config struct {
 	Server struct {
-		Port string `yaml:"port"`
-		Host string `yaml:"host"`
+		Port         string `yaml:"port"`
+		Host         string `yaml:"host"`
+		JwtSecretKey string `yaml:"jwtSecretKey"`
+		CookieName   string `yaml:"cookieName"`
 	} `yaml:"server"`
+
+	Cookie struct {
+		Name     string `yaml:"name"`
+		MaxAge   int    `yaml:"maxAge"`
+		Secure   bool   `yaml:"secure"`
+		HTTPOnly bool   `yaml:"httpOnly"`
+	} `yaml:"cookie"`
+	
+	JsonDB struct {
+		Filename string `yaml:"filename"`
+	} `yaml:"jsonDB"`
 }
 
 func Decode(cfgFile string) (*Config, error) {

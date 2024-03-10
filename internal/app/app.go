@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RickDred/internship_tasks/blob/fifth_task/config"
-	"github.com/RickDred/internship_tasks/blob/fifth_task/pkg/router"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/config"
+	"github.com/RickDred/internship_tasks/tree/fifth_task/pkg/router"
 )
 
 func StartServer(cfg *config.Config) {
@@ -18,7 +18,7 @@ func StartServer(cfg *config.Config) {
 
 	r := router.NewRouter()
 
-	SetRoutes(r)
+	SetRoutes(r, cfg)
 
 	addr := fmt.Sprintf("%v:%v", cfg.Server.Host, cfg.Server.Port)
 	fmt.Printf("Starting on http://%v\n", addr)

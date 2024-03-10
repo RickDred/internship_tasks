@@ -28,6 +28,10 @@ func WriteJSON(w http.ResponseWriter, data interface{}) {
 	}
 }
 
-func WriteError(w http.ResponseWriter, err error) {
-	WriteJSON(w, err.Error())
+func WriteError(w http.ResponseWriter, status int, err error) {
+	w.WriteHeader(status)
+	er := struct {
+		Message string `json:"message"`
+	}{err.Error()}
+	WriteJSON(w, er)
 }
