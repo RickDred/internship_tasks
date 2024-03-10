@@ -5,6 +5,7 @@ import (
 	"github.com/RickDred/internship_tasks/tree/sixth_task/internal/auth"
 	"github.com/RickDred/internship_tasks/tree/sixth_task/internal/models"
 	"github.com/RickDred/internship_tasks/tree/sixth_task/pkg/httperrors"
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -65,6 +66,34 @@ func (s *Service) Login(user *models.User) error {
 	return nil
 }
 
-func (s *Service) Logout(u *models.User) error {
+func (s *Service) Profile(id uuid.UUID) (*models.User, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError("not valid id")
+	}
+
+	user.Standardize()
+	user.CleanPassword()
+
+	return user, nil
+}
+
+func (s *Service) Update(user *models.User) error {
+	user.Standardize()
+
+	_, err := s.repo.GetByID(user.ID)
+	if err != nil {
+		return httperrors.NewBadRequestError("Invalid id")
+	}
+
+	if err := user.HashPassword(); err != nil {
+		return httperrors.NewInternalServerError("hashing error")
+	}
+
+	if err := s.repo.UpdateById(user); err != nil {
+		return httperrors.NewInternalServerError("updating error")
+	}
+
+	user.CleanPassword()
 	return nil
 }

@@ -10,4 +10,5 @@ type Repo interface {
 	GetByEmail(string) (*models.User, error)
 	GetByID(uuid.UUID) (*models.User, error)
 	GetAll() ([]models.User, error)
+	UpdateById(*models.User) error
 }

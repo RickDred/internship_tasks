@@ -19,6 +19,9 @@ func SetRoutes(r *router.Router, cfg *config.Config) {
 
 	r.POST("/api/v1/register", aHandlers.Register)
 	r.POST("/api/v1/login", aHandlers.Login)
+	r.POST("/api/v1/logout", aHandlers.Logout)
+	r.POST("/api/v1/update", aHandlers.Update)
+	r.GET("/api/v1/profile", aHandlers.Profile)
 
 	// web routes
 	r.GET("/", web.ProfileHandler)

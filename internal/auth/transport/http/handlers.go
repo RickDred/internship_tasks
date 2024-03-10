@@ -45,12 +45,12 @@ func (h *Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.Register(&user); err != nil {
-		httpjson.WriteError(w, http.StatusBadRequest, httperrors.NewBadRequestError(err.Error()))
+		h.setError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := h.createJwtCookie(w, &user); err != nil {
-		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		httpjson.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -76,16 +76,71 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.Login(&user); err != nil {
-		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		h.setError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := h.createJwtCookie(w, &user); err != nil {
-		httpjson.WriteError(w, http.StatusInternalServerError, httperrors.NewInternalServerError(err.Error()))
+		httpjson.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	httpjson.WriteJSON(w, &input)
 }
 
-func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {}
+func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
+	h.cleanCookie(w)
+}
+
+func (h *Handlers) Profile(w http.ResponseWriter, r *http.Request) {
+	userJWT, err := h.getUserFromCookie(r)
+	if err != nil {
+		httpjson.WriteError(w, http.StatusUnauthorized, err)
+	}
+
+	user, err := h.service.Profile(userJWT.ID)
+	if err != nil {
+		h.setError(w, err, http.StatusInternalServerError)
+	}
+
+	httpjson.WriteJSON(w, &user)
+}
+
+func (h *Handlers) Update(w http.ResponseWriter, r *http.Request) {
+	userJWT, err := h.getUserFromCookie(r)
+	if err != nil {
+		httpjson.WriteError(w, http.StatusUnauthorized, err)
+	}
+
+	var input struct {
+		Name     string `json:"name"`
+		Password string `json:"password"`
+	}
+
+	if err := httpjson.ReadJSON(r, &input); err != nil {
+		log.Printf("error while reading json: %v\n", err)
+
+		httpjson.WriteError(w, http.StatusBadRequest, httperrors.NewBadRequestError("bad request"))
+		return
+	}
+
+	user := &models.User{}
+
+	user.ID = userJWT.ID
+	user.Name = input.Name
+	user.Password = input.Password
+
+	if err := h.service.Update(user); err != nil {
+		log.Printf("error while updating user: %v\n", err)
+
+		h.setError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.createJwtCookie(w, user); err != nil {
+		httpjson.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httpjson.WriteJSON(w, user)
+}

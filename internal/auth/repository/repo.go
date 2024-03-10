@@ -110,3 +110,45 @@ func (r *Repo) GetByID(id uuid.UUID) (*models.User, error) {
 
 	return nil, errors.New("user not found by ID")
 }
+
+func (r *Repo) UpdateById(upUser *models.User) error {
+	users, err := r.GetAll()
+	if err != nil {
+		return err
+	}
+
+	var index = -1
+	for i, user := range users {
+		if user.ID == upUser.ID {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		return errors.New("user not found by ID")
+	}
+
+	upUser.Email = users[index].Email
+	upUser.CreatedAt = users[index].CreatedAt
+
+	users[index] = *upUser
+
+	// Rewrite the JSON database with updated user information
+	file, err := os.OpenFile(r.cfg.JsonDB.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := json.MarshalIndent(users, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	if _, err := file.Write(data); err != nil {
+		return err
+	}
+
+	return nil
+}
