@@ -3,10 +3,22 @@ package router
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
 func (r *Router) routesMatch(path, pattern string) (bool, map[string]string) {
+	params := make(map[string]string)
+	if strings.Contains(pattern, "*") {
+		ok := "^" + strings.ReplaceAll(pattern, "*", ".*") + "$"
+		regex, err := regexp.Compile(ok)
+		if err != nil {
+			return false, nil
+		}
+
+		return regex.MatchString(path), params
+	}
+
 	patternParts := strings.Split(pattern, "/")
 	pathParts := strings.Split(path, "/")
 
@@ -14,14 +26,14 @@ func (r *Router) routesMatch(path, pattern string) (bool, map[string]string) {
 		return false, nil
 	}
 
-	params := make(map[string]string)
-
 	for i := 0; i < len(patternParts); i++ {
 		patternPart := patternParts[i]
 		pathPart := pathParts[i]
 
 		if strings.HasPrefix(patternPart, ":") {
 			params[patternPart[1:]] = pathPart
+		} else if strings.HasPrefix(patternPart, "*") {
+			return true, params
 		} else if patternPart != pathPart {
 			return false, nil
 		}
